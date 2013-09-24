@@ -47,15 +47,18 @@ sub register_file {
         }
     }
 
-    # ::___
+    # ___ or ::___
     my $words = $doc->find('PPI::Token::Word');
     if ($words) {
-        my $words_with_namespace = [ grep {
-            $_ =~ /::/;
-        } @$words ];
-        for (@$words_with_namespace) {
-            my $method = (split '::', $_)[-1];
-            $self->_method_called($method);
+        for (@$words) {
+            if ($_ =~ /::/) {
+                my $method = (split '::', $_)[-1];
+                $self->_method_called($method);
+            } else {
+                if ((eval { $_->previous_sibling->previous_sibling } || '') ne 'sub') {
+                    $self->_method_called($_);
+                }
+            }
         }
     }
 }
