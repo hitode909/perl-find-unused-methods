@@ -61,6 +61,17 @@ sub register_file {
             }
         }
     }
+
+    # &___ , &___() or \&___
+    my $symbols = $doc->find('PPI::Token::Symbol') || [];
+    for (@$symbols) {
+        next unless $_->symbol_type eq '&';
+        ( my $sub = $_->content ) =~ s/\A&//;
+        $sub = ( split '::', $sub )[-1];
+        $self->_method_called($sub);
+    }
+
+    return 1;
 }
 
 sub _method_found {
